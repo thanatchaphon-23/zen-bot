@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEN BOT 🤖</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="templates/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="chat-window">
+        <div class="chat-header">
+            <h1 class="text-lg font-bold">ZEN Chat ✨</h1>
+            <div class="chat-controls">
+                <button class="control-button">−</button>
+                <button class="control-button">×</button>
+            </div>
+        </div>
+ 
+        <div class="chat-messages" id="chat-messages">
+            <div class="bot-with-message">
+                <div class="bot-avatar">
+                    <img src="https://i.pinimg.com/736x/9e/bd/d4/9ebdd4be060f8beb435930a2b7119679.jpg" alt="Bot" class="w-8 h-8">
+                </div>
+                <div class="message bot-message">
+                    สวัสดีค่ะ! 🌸 ยินดีต้อนรับสู่ระบบตอบคำถามเกี่ยวกับสมาชิก NCT ถามคำถามได้เลยนะคะ 💖
+                </div>
+            </div>
+        </div>
+ 
+        <div class="input-area">
+            <form id="question-form" class="input-container">
+                <input
+                    type="text"
+                    class="chat-input"
+                    placeholder="พิมพ์คำถามที่นี่..."
+                    id="question-input"
+                >
+                <button type="submit" class="send-button">➤</button>
+            </form>
+        </div>
+    </div>
+ 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('question-form');
+            const input = document.getElementById('question-input');
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            function addMessage(text, isUser = false) {
+                if (isUser) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message user-message';
+                    messageDiv.textContent = text;
+                    messagesContainer.appendChild(messageDiv);
+                } else {
+                    const botMessageContainer = document.createElement('div');
+                    botMessageContainer.className = 'bot-with-message';
+                    
+                    const avatarDiv = document.createElement('div');
+                    avatarDiv.className = 'bot-avatar';
+                    const avatarImg = document.createElement('img');
+                    avatarImg.src = '/api/placeholder/20/20';
+                    avatarImg.alt = 'Bot';
+                    avatarImg.className = 'w-4 h-4';
+                    avatarDiv.appendChild(avatarImg);
+                    
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message bot-message';
+                    messageDiv.textContent = text;
+                    
+                    botMessageContainer.appendChild(avatarDiv);
+                    botMessageContainer.appendChild(messageDiv);
+                    messagesContainer.appendChild(botMessageContainer);
+                }
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const question = input.value.trim();
+                if (!question) return;
+                
+                addMessage(question, true);
+                input.value = '';
+                
+                try {
+                    const response = await fetch('/api/ask', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query: question })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        addMessage(data.answer);
+                    } else {
+                        addMessage('💔 ขออภัยค่ะ เกิดข้อผิดพลาด: ' + (data.error || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้'));
+                    }
+                } catch (error) {
+                    addMessage('💔 ขออภัยค่ะ เกิดข้อผิดพลาด: ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
